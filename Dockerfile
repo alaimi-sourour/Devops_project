@@ -1,13 +1,11 @@
-# 1. Image de Base : Java 17 (image valide sur Docker Hub)
-FROM openjdk:17-jdk-slim
+# Image de base OpenJDK 17
+FROM eclipse-temurin:17-jdk
 
-# 2. Répertoire de Travail
+# Répertoire de travail
 WORKDIR /app
 
-# 3. Copier le jar généré par Maven
+# Copier le jar compilé
 COPY target/student-management-0.0.1-SNAPSHOT.jar app.jar
 
-# 4. Exposer le port 8080
-EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Commande pour démarrer l'application
+ENTRYPOINT ["java","-jar","app.jar"]
