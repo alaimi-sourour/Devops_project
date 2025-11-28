@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+    
+    // Définition des outils
+    tools {
+        maven 'maven'
+        jdk 'JAVA_HOME'
+    }
+    
+    // Variables d'environnement
+    environment {
+        DOCKER_IMAGE = "alaimisourour/student-management-app:${env.BUILD_ID}"
+        PATH = "/mnt/wsl/docker-desktop/cli-tools/usr/bin:$PATH"
+        DOCKER_HOST = "unix:///var/run/docker.sock"
+    }
+    
+    stages {
+        // Stage 1 : Clonage du code source
+        stage('1. Cloner le projet depuis GitHub') {
+            steps {
+                git branch: 'master', url: 'https://github.com/alaimi-sourour/Devops_project.git'
+            }
+        }
+        
+        // Stage 2 : Compilation et Packaging
+        stage('2. Compilation & Packaging') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+        
+        // Stage 3 : Création de l'image Docker
+        stage('3. Docker Image Build') {
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE} ."
+            }
+        }
+
+        // Stage 4 : Push de l'image Docker sur DockerHub
+        stage('4. Docker Image Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker', 
+                                                 usernameVariable: 'DOCKER_USER', 
+                                                 passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh "echo ${DOCKER_PASSWORD} | docker login -u ${DOCKER_USER} --password-stdin"
+                    sh "docker push ${DOCKER_IMAGE}"
+                }
+            }
+        }
+    }
+}
